@@ -3,10 +3,10 @@
 A comprehensive web platform connecting doctors and patients for better healthcare outcomes through knowledge sharing and meaningful discussions.
 
 ## 🌟 Live Demo
-**Deployed URL:** [Add your deployment URL here after hosting]
+**Deployed URL:** https://dr-online-service.vercel.app
 
 ## 📂 Source Code Repository
-**GitHub Repository:** https://github.com/YOUR-USERNAME/dr-online-frontend
+**GitHub Repository:** https://github.com/alihashmar/dr-online-service
 
 ---
 
