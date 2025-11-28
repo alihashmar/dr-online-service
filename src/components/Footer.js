@@ -26,8 +26,8 @@ const Footer = () => {
             <h4 className="text-lg font-semibold mb-4">Contact Info</h4>
             <ul className="space-y-2 text-gray-400">
               <li>Email: info@dronline.com</li>
-              <li>Phone: +1 (555) 123-4567</li>
-              <li>Address: 123 Medical St, Health City</li>
+              <li>Phone: +961 71 135828</li>
+              <li>Address: Beirut, Lebanon</li>
             </ul>
           </div>
         </div>

@@ -113,7 +113,7 @@ const Contact = () => {
                   <div className="text-blue-600 text-2xl mr-4">📍</div>
                   <div>
                     <h3 className="font-semibold mb-1">Address</h3>
-                    <p className="text-gray-600">123 Medical Street<br/>Health City, HC 12345<br/>United States</p>
+                    <p className="text-gray-600">Beirut<br/>Lebanon</p>
                   </div>
                 </div>
 
@@ -121,7 +121,7 @@ const Contact = () => {
                   <div className="text-blue-600 text-2xl mr-4">📞</div>
                   <div>
                     <h3 className="font-semibold mb-1">Phone</h3>
-                    <p className="text-gray-600">+1 (555) 123-4567<br/>+1 (555) 987-6543</p>
+                    <p className="text-gray-600">+961 71 135828</p>
                   </div>
                 </div>
 
