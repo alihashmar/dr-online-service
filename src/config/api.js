@@ -6,12 +6,12 @@
  * This file contains all API-related configuration for the
  * Dr. Online Healthcare Platform.
  * 
- * Backend: Node.js + Express + MySQL (XAMPP)
+ * Backend: Node.js + Express + MySQL
  * ==========================================================
  */
 
-// API BASE URL - Node.js backend
-export const API_BASE_URL = 'http://localhost:5000/api';
+// API BASE URL - Uses environment variable for production, localhost for development
+export const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
 export const API_ENDPOINTS = {
   health: `${API_BASE_URL}/health`,
