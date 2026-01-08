@@ -1,108 +1,115 @@
 # Dr. Online - Healthcare Platform
 
-A healthcare web application built with **React** (frontend) and **PHP + MySQL** (backend).
+A healthcare web application built with **React** (frontend) and **Node.js + Express + MySQL** (backend).
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 dr-online-frontend/
-├── src/                    # React source code
-│   ├── components/         # Reusable UI components
-│   │   ├── Navbar.js       # Navigation bar
-│   │   ├── Footer.js       # Page footer
-│   │   ├── LoadingSpinner.js
-│   │   └── Toast.js        # Notification component
-│   ├── pages/              # Page components
-│   │   ├── Home.js         # Homepage
-│   │   ├── About.js        # About page
-│   │   ├── Services.js     # Services listing
-│   │   ├── Contact.js      # Contact form
-│   │   ├── Discussions.js  # Forum page
-│   │   └── AdminMessages.js # Admin panel
-│   ├── config/
-│   │   └── api.js          # API configuration
-│   ├── App.js              # Main app component
-│   └── index.js            # Entry point
-├── backend/                # PHP backend source
-│   ├── api/                # API endpoints
-│   │   ├── health.php      # Health check
-│   │   ├── services.php    # Services CRUD
-│   │   ├── contacts.php    # Contact messages
-│   │   ├── appointments.php # Appointments
-│   │   └── login.php       # Authentication
-│   ├── config/
-│   │   ├── database.php    # Database connection
-│   │   └── cors.php        # CORS headers
-│   └── sql/
-│       └── setup.sql       # Database schema
-├── public/                 # Static files
-└── package.json            # Dependencies
+ src/                    # React source code
+    components/         # Reusable UI components
+       Navbar.js       # Navigation bar
+       Footer.js       # Page footer
+       LoadingSpinner.js
+       Toast.js        # Notification component
+    pages/              # Page components
+       Home.js         # Homepage
+       About.js        # About page
+       Services.js     # Services listing
+       Contact.js      # Contact form
+       Discussions.js  # Forum page
+       AdminMessages.js # Admin panel
+    config/
+       api.js          # API configuration
+    App.js              # Main app component
+    index.js            # Entry point
+ backend/                # Node.js backend
+    server.js           # Express server entry point
+    config/
+       database.js     # MySQL database connection
+    routes/
+       health.js       # Health check endpoint
+       contacts.js     # Contact messages CRUD
+       services.js     # Services CRUD
+       users.js        # User auth & management
+       appointments.js # Appointments CRUD
+    sql/
+        setup.sql       # Database schema
+ public/                 # Static files
+ package.json            # Frontend dependencies
 ```
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 - **Node.js** (v14 or higher)
-- **XAMPP** (Apache + MySQL)
+- **MySQL** (via XAMPP or standalone)
 
 ### Step 1: Setup Database
 
-1. Start **XAMPP** (Apache + MySQL)
+1. Start **MySQL** (via XAMPP or standalone)
 2. Open terminal and run:
 ```bash
 C:\Users\DELL\Downloads\xampp\mysql\bin\mysql.exe -u root < backend/sql/setup.sql
 ```
 
-Or import `backend/sql/setup.sql` via phpMyAdmin.
+Or import backend/sql/setup.sql via phpMyAdmin.
 
-### Step 2: Deploy PHP Backend
+### Step 2: Start Backend Server
 
-Copy the `backend` folder to XAMPP htdocs:
+```bash
+cd backend
+npm install
+npm start
 ```
-C:\Users\DELL\Downloads\xampp\htdocs\healthcare-api\
-```
+
+Backend runs on http://localhost:8000
 
 ### Step 3: Start React Frontend
 
+Open a new terminal:
 ```bash
 npm install
 npm start
 ```
 
-Open http://localhost:3000
+Frontend opens at http://localhost:3000
 
 ---
 
-## 🔑 Admin Login
+## Admin Login
 
 | Field | Value |
 |-------|-------|
-| Email | `admin@healthcare.com` |
-| Password | `admin123` |
+| Email | admin@healthcare.com |
+| Password | admin123 |
 
 ---
 
-## 📡 API Endpoints
+## API Endpoints
 
-**Base URL:** `http://localhost/healthcare-api/api`
+**Base URL:** http://localhost:8000/api
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/health.php` | Health check |
-| GET | `/services.php` | List all services |
-| GET | `/contacts.php` | List all messages |
-| POST | `/contacts.php` | Submit contact form |
-| POST | `/login.php` | Admin login |
-| GET | `/appointments.php` | List appointments |
-| POST | `/appointments.php` | Book appointment |
+| GET | /health | Health check |
+| GET | /services | List all services |
+| POST | /services | Create service |
+| GET | /contacts | List all messages |
+| POST | /contacts | Submit contact form |
+| DELETE | /contacts/:id | Delete message |
+| POST | /users/login | User login |
+| POST | /users/register | User registration |
+| GET | /appointments | List appointments |
+| POST | /appointments | Book appointment |
 
 ---
 
-## 🗄️ Database: `healthcare_db`
+## Database: healthcare_db
 
 ### Tables
 
@@ -112,8 +119,10 @@ Open http://localhost:3000
 | id | INT | Primary key |
 | name | VARCHAR(100) | User name |
 | email | VARCHAR(100) | Email (unique) |
-| password | VARCHAR(255) | Hashed password |
+| password | VARCHAR(255) | Password |
 | role | ENUM | admin/doctor/patient |
+| specialty | VARCHAR(100) | Doctor specialty |
+| license_number | VARCHAR(50) | Doctor license |
 
 **services**
 | Column | Type | Description |
@@ -148,41 +157,58 @@ Open http://localhost:3000
 
 ---
 
-## 🛠️ Technologies
+## Technologies
 
 ### Frontend
-- React 18
+- React 19
 - React Router DOM
 - Tailwind CSS
-- Font Awesome Icons
 
 ### Backend
-- PHP 8.2
+- Node.js
+- Express.js
 - MySQL / MariaDB
-- PDO (Database)
+- mysql2 (Database driver)
 
 ---
 
-## 📝 Available Scripts
+## Available Scripts
 
+### Frontend
 | Command | Description |
 |---------|-------------|
-| `npm start` | Run development server |
-| `npm run build` | Create production build |
-| `npm test` | Run tests |
+| npm start | Run development server |
+| npm run build | Create production build |
+| npm test | Run tests |
+
+### Backend
+| Command | Description |
+|---------|-------------|
+| npm start | Run server |
+| npm run dev | Run with nodemon (auto-reload) |
 
 ---
 
-## 🔧 Configuration
+## Configuration
 
-Edit `src/config/api.js` to change API URL:
+### Frontend
+Create .env file in root:
+```
+REACT_APP_API_URL=http://localhost:8000
+```
 
-```javascript
-export const API_BASE_URL = 'http://localhost/healthcare-api/api';
+### Backend
+Edit backend/.env:
+```
+PORT=8000
+DB_HOST=localhost
+DB_USER=root
+DB_PASSWORD=
+DB_NAME=healthcare_db
 ```
 
 ---
 
-## 📄 License
+## License
 
 MIT License - Free to use and modify.

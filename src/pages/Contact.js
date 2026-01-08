@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { API_ENDPOINTS } from '../config/api';
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -49,13 +48,14 @@ const Contact = () => {
     setSubmitted(false);
 
     try {
-      const response = await fetch(API_ENDPOINTS.contacts, {
+      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+      const response = await fetch(`${apiUrl}/api/contacts`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
       });
+
       const data = await response.json();
-      
       if (!response.ok) {
         throw new Error(data.error || 'Failed to send message');
       }

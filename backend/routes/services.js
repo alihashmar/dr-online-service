@@ -2,26 +2,20 @@ const express = require('express');
 const router = express.Router();
 const { pool } = require('../config/database');
 
-// GET all services
+// Get all services
 router.get('/', async (req, res) => {
   try {
     const [rows] = await pool.query(
       'SELECT * FROM services ORDER BY id ASC'
     );
-    res.json({
-      success: true,
-      data: rows
-    });
+    res.json(rows);
   } catch (error) {
     console.error('Error fetching services:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch services'
-    });
+    res.status(500).json({ error: 'Failed to fetch services' });
   }
 });
 
-// GET single service by ID
+// Get single service
 router.get('/:id', async (req, res) => {
   try {
     const [rows] = await pool.query(
@@ -30,93 +24,67 @@ router.get('/:id', async (req, res) => {
     );
     
     if (rows.length === 0) {
-      return res.status(404).json({
-        success: false,
-        error: 'Service not found'
-      });
+      return res.status(404).json({ error: 'Service not found' });
     }
     
-    res.json({
-      success: true,
-      data: rows[0]
-    });
+    res.json(rows[0]);
   } catch (error) {
     console.error('Error fetching service:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch service'
-    });
+    res.status(500).json({ error: 'Failed to fetch service' });
   }
 });
 
-// POST create new service
+// Create new service (admin only)
 router.post('/', async (req, res) => {
   try {
-    const { name, description, price, icon } = req.body;
+    const { title, slug, description, price, duration_minutes } = req.body;
     
-    if (!name || !description) {
-      return res.status(400).json({
-        success: false,
-        error: 'Name and description are required'
+    if (!title || !description) {
+      return res.status(400).json({ 
+        error: 'Title and description are required' 
       });
     }
     
+    const serviceSlug = slug || title.toLowerCase().replace(/\s+/g, '-');
+    
     const [result] = await pool.query(
-      'INSERT INTO services (name, description, price, icon) VALUES (?, ?, ?, ?)',
-      [name, description, price || 0, icon || '🏥']
+      'INSERT INTO services (title, slug, description, price, duration_minutes) VALUES (?, ?, ?, ?, ?)',
+      [title, serviceSlug, description, price || 0, duration_minutes || 30]
     );
     
     res.status(201).json({
       success: true,
       message: 'Service created successfully',
-      data: {
-        id: result.insertId,
-        name,
-        description,
-        price,
-        icon
-      }
+      id: result.insertId
     });
   } catch (error) {
     console.error('Error creating service:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to create service'
-    });
+    res.status(500).json({ error: 'Failed to create service' });
   }
 });
 
-// PUT update service
+// Update service
 router.put('/:id', async (req, res) => {
   try {
-    const { name, description, price, icon } = req.body;
+    const { title, slug, description, price, duration_minutes } = req.body;
     
     const [result] = await pool.query(
-      'UPDATE services SET name = ?, description = ?, price = ?, icon = ? WHERE id = ?',
-      [name, description, price, icon, req.params.id]
+      'UPDATE services SET title = ?, slug = ?, description = ?, price = ?, duration_minutes = ? WHERE id = ?',
+      [title, slug, description, price, duration_minutes, req.params.id]
     );
     
     if (result.affectedRows === 0) {
-      return res.status(404).json({
-        success: false,
-        error: 'Service not found'
-      });
+      return res.status(404).json({ error: 'Service not found' });
     }
     
-    res.json({
-      success: true,
-      message: 'Service updated successfully'
-    });
+    res.json({ success: true, message: 'Service updated' });
   } catch (error) {
     console.error('Error updating service:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to update service'
-    });
+    res.status(500).json({ error: 'Failed to update service' });
   }
 });
 
-// DELETE service
+// Delete service
 router.delete('/:id', async (req, res) => {
   try {
     const [result] = await pool.query(
@@ -125,22 +93,13 @@ router.delete('/:id', async (req, res) => {
     );
     
     if (result.affectedRows === 0) {
-      return res.status(404).json({
-        success: false,
-        error: 'Service not found'
-      });
+      return res.status(404).json({ error: 'Service not found' });
     }
     
-    res.json({
-      success: true,
-      message: 'Service deleted successfully'
-    });
+    res.json({ success: true, message: 'Service deleted' });
   } catch (error) {
     console.error('Error deleting service:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to delete service'
-    });
+    res.status(500).json({ error: 'Failed to delete service' });
   }
 });
 

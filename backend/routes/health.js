@@ -1,27 +1,17 @@
 const express = require('express');
 const router = express.Router();
-const { pool, testConnection } = require('../config/database');
+const { testConnection } = require('../config/database');
 
 // Health check endpoint
-router.get('/', async (req, res) => {
-  try {
-    const dbConnected = await testConnection();
-    
-    res.json({
-      success: true,
-      status: 'OK',
-      message: 'Dr. Online API is running',
-      database: dbConnected ? 'Connected' : 'Disconnected',
-      timestamp: new Date().toISOString()
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      status: 'ERROR',
-      message: 'Health check failed',
-      error: error.message
-    });
-  }
+router.get('/health', async (req, res) => {
+  const dbStatus = await testConnection();
+  
+  res.json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    database: dbStatus ? 'connected' : 'disconnected',
+    server: 'running'
+  });
 });
 
 module.exports = router;

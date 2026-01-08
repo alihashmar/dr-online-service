@@ -2,143 +2,127 @@ const express = require('express');
 const router = express.Router();
 const { pool } = require('../config/database');
 
-// GET all appointments
+// Get all appointments
 router.get('/', async (req, res) => {
   try {
-    const [rows] = await pool.query(
-      'SELECT * FROM appointments ORDER BY appointment_date DESC'
-    );
-    res.json({
-      success: true,
-      data: rows
-    });
+    const [rows] = await pool.query(`
+      SELECT a.*, s.title as service_name 
+      FROM appointments a 
+      LEFT JOIN services s ON a.service_id = s.id 
+      ORDER BY a.appointment_date DESC, a.appointment_time DESC
+    `);
+    res.json(rows);
   } catch (error) {
     console.error('Error fetching appointments:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch appointments'
-    });
+    res.status(500).json({ error: 'Failed to fetch appointments' });
   }
 });
 
-// GET appointments by user ID
-router.get('/user/:userId', async (req, res) => {
-  try {
-    const [rows] = await pool.query(
-      'SELECT * FROM appointments WHERE user_id = ? ORDER BY appointment_date DESC',
-      [req.params.userId]
-    );
-    res.json({
-      success: true,
-      data: rows
-    });
-  } catch (error) {
-    console.error('Error fetching user appointments:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch appointments'
-    });
-  }
-});
-
-// GET single appointment by ID
+// Get single appointment
 router.get('/:id', async (req, res) => {
   try {
-    const [rows] = await pool.query(
-      'SELECT * FROM appointments WHERE id = ?',
-      [req.params.id]
-    );
+    const [rows] = await pool.query(`
+      SELECT a.*, s.title as service_name 
+      FROM appointments a 
+      LEFT JOIN services s ON a.service_id = s.id 
+      WHERE a.id = ?
+    `, [req.params.id]);
     
     if (rows.length === 0) {
-      return res.status(404).json({
-        success: false,
-        error: 'Appointment not found'
-      });
+      return res.status(404).json({ error: 'Appointment not found' });
     }
     
-    res.json({
-      success: true,
-      data: rows[0]
-    });
+    res.json(rows[0]);
   } catch (error) {
     console.error('Error fetching appointment:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch appointment'
-    });
+    res.status(500).json({ error: 'Failed to fetch appointment' });
   }
 });
 
-// POST create new appointment
+// Create new appointment
 router.post('/', async (req, res) => {
   try {
-    const { user_id, patient_name, patient_email, service_id, appointment_date, appointment_time, notes } = req.body;
+    const { 
+      patient_name, 
+      patient_email, 
+      service_id, 
+      appointment_date, 
+      appointment_time,
+      notes 
+    } = req.body;
     
-    // Validation
     if (!patient_name || !patient_email || !appointment_date || !appointment_time) {
-      return res.status(400).json({
-        success: false,
-        error: 'Patient name, email, date, and time are required'
+      return res.status(400).json({ 
+        error: 'Patient name, email, date and time are required' 
       });
     }
     
     const [result] = await pool.query(
-      'INSERT INTO appointments (user_id, patient_name, patient_email, service_id, appointment_date, appointment_time, notes, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-      [user_id || null, patient_name, patient_email, service_id || null, appointment_date, appointment_time, notes || '', 'pending']
+      `INSERT INTO appointments 
+       (patient_name, patient_email, service_id, appointment_date, appointment_time, notes, status) 
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [patient_name, patient_email, service_id || null, appointment_date, appointment_time, notes || '', 'pending']
     );
     
     res.status(201).json({
       success: true,
       message: 'Appointment booked successfully',
-      data: {
-        id: result.insertId,
-        patient_name,
-        patient_email,
-        appointment_date,
-        appointment_time,
-        status: 'pending'
-      }
+      id: result.insertId
     });
   } catch (error) {
     console.error('Error creating appointment:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to book appointment'
-    });
+    res.status(500).json({ error: 'Failed to book appointment' });
   }
 });
 
-// PUT update appointment status
+// Update appointment status
 router.put('/:id', async (req, res) => {
   try {
-    const { status, notes } = req.body;
+    const { status, appointment_date, appointment_time } = req.body;
+    const validStatuses = ['pending', 'confirmed', 'completed', 'cancelled'];
     
-    const [result] = await pool.query(
-      'UPDATE appointments SET status = ?, notes = ? WHERE id = ?',
-      [status, notes, req.params.id]
-    );
-    
-    if (result.affectedRows === 0) {
-      return res.status(404).json({
-        success: false,
-        error: 'Appointment not found'
-      });
+    if (status && !validStatuses.includes(status)) {
+      return res.status(400).json({ error: 'Invalid status' });
     }
     
-    res.json({
-      success: true,
-      message: 'Appointment updated successfully'
-    });
+    let query = 'UPDATE appointments SET ';
+    const params = [];
+    const updates = [];
+    
+    if (status) {
+      updates.push('status = ?');
+      params.push(status);
+    }
+    if (appointment_date) {
+      updates.push('appointment_date = ?');
+      params.push(appointment_date);
+    }
+    if (appointment_time) {
+      updates.push('appointment_time = ?');
+      params.push(appointment_time);
+    }
+    
+    if (updates.length === 0) {
+      return res.status(400).json({ error: 'No updates provided' });
+    }
+    
+    query += updates.join(', ') + ' WHERE id = ?';
+    params.push(req.params.id);
+    
+    const [result] = await pool.query(query, params);
+    
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: 'Appointment not found' });
+    }
+    
+    res.json({ success: true, message: 'Appointment updated' });
   } catch (error) {
     console.error('Error updating appointment:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to update appointment'
-    });
+    res.status(500).json({ error: 'Failed to update appointment' });
   }
 });
 
-// DELETE appointment
+// Delete appointment
 router.delete('/:id', async (req, res) => {
   try {
     const [result] = await pool.query(
@@ -147,22 +131,13 @@ router.delete('/:id', async (req, res) => {
     );
     
     if (result.affectedRows === 0) {
-      return res.status(404).json({
-        success: false,
-        error: 'Appointment not found'
-      });
+      return res.status(404).json({ error: 'Appointment not found' });
     }
     
-    res.json({
-      success: true,
-      message: 'Appointment deleted successfully'
-    });
+    res.json({ success: true, message: 'Appointment deleted' });
   } catch (error) {
     console.error('Error deleting appointment:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to delete appointment'
-    });
+    res.status(500).json({ error: 'Failed to delete appointment' });
   }
 });
 
