@@ -11,26 +11,32 @@ const AdminMessages = () => {
   const [loggingIn, setLoggingIn] = useState(false);
 
   useEffect(() => {
-    fetch(API_ENDPOINTS.contacts)
-      .then(async (r) => {
-        if (!r.ok) throw new Error('Failed to fetch messages');
-        try { return await r.json(); } catch { return [] }
-      })
-      .then((data) => { setMessages(data.data || data || []); setLoading(false); })
-      .catch((e) => { setError(String(e)); setLoading(false); });
+    fetchMessages();
   }, []);
+
+  const fetchMessages = async () => {
+    try {
+      const response = await fetch(API_ENDPOINTS.contacts);
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Failed to fetch messages');
+      setMessages(data.data || []);
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleDelete = async (id) => {
     if (!window.confirm('Delete this message?')) return;
     try {
       const headers = { 'Content-Type': 'application/json' };
       if (token) headers['Authorization'] = 'Bearer ' + token;
-      const res = await fetch(`${API_ENDPOINTS.contacts}?id=${id}`, { method: 'DELETE', headers });
+      const res = await fetch(`${API_ENDPOINTS.contacts}/${id}`, { method: 'DELETE', headers });
       if (!res.ok) {
-        const txt = await res.text();
-        throw new Error(txt || 'Delete failed');
+        const data = await res.json();
+        throw new Error(data.error || 'Delete failed');
       }
-      // optimistic update
       setMessages((m) => m.filter((x) => x.id !== id));
     } catch (err) {
       alert('Delete failed: ' + err.message);
@@ -42,20 +48,19 @@ const AdminMessages = () => {
     setLoggingIn(true);
     setError('');
     try {
-      const res = await fetch(API_ENDPOINTS.login, {
+      const res = await fetch(API_ENDPOINTS.auth.login, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: loginEmail, password: loginPassword }),
       });
-      let data;
-      try { data = await res.json(); } catch { data = null }
+      const data = await res.json();
       if (!data.success || !data.user) throw new Error(data.error || 'Login failed');
-      const t = data.token || data.user.api_token || '';
+      const t = data.token || '';
       setToken(t);
       localStorage.setItem('api_token', t);
-      setLoggingIn(false);
     } catch (err) {
-      setError(String(err));
+      setError(err.message);
+    } finally {
       setLoggingIn(false);
     }
   };
@@ -66,15 +71,15 @@ const AdminMessages = () => {
       {!token && (
         <div className="mb-4 p-4 border rounded bg-gray-50">
           <h2 className="font-semibold mb-2">Admin login</h2>
-          <form onSubmit={doLogin} className="flex gap-2 items-center">
-            <input className="border px-2 py-1" placeholder="email" value={loginEmail} onChange={(e)=>setLoginEmail(e.target.value)} />
-            <input className="border px-2 py-1" placeholder="password" type="password" value={loginPassword} onChange={(e)=>setLoginPassword(e.target.value)} />
+          <form onSubmit={doLogin} className="flex gap-2 items-center flex-wrap">
+            <input className="border px-2 py-1 rounded" placeholder="email" value={loginEmail} onChange={(e)=>setLoginEmail(e.target.value)} />
+            <input className="border px-2 py-1 rounded" placeholder="password" type="password" value={loginPassword} onChange={(e)=>setLoginPassword(e.target.value)} />
             <button className="bg-blue-600 text-white px-3 py-1 rounded" disabled={loggingIn}>{loggingIn? 'Logging…' : 'Login'}</button>
           </form>
         </div>
       )}
       {loading && <p>Loading messages…</p>}
-      {error && <p className="text-red-600">Error: {error}</p>}
+      {error && <p className="text-red-600 mb-4">Error: {error}</p>}
       {!loading && !messages.length && <p>No messages found.</p>}
       <div className="space-y-4">
         {messages.map((m) => (
@@ -87,9 +92,11 @@ const AdminMessages = () => {
               <div className="text-sm text-gray-500">{new Date(m.created_at).toLocaleString()}</div>
             </div>
             <p className="mt-3 whitespace-pre-wrap">{m.message}</p>
-            <div className="absolute top-3 right-3">
-              <button onClick={() => handleDelete(m.id)} className="text-sm bg-red-600 text-white px-2 py-1 rounded">Delete</button>
-            </div>
+            {token && (
+              <div className="absolute top-3 right-3">
+                <button onClick={() => handleDelete(m.id)} className="text-sm bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700">Delete</button>
+              </div>
+            )}
           </div>
         ))}
       </div>

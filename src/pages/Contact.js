@@ -54,10 +54,10 @@ const Contact = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
       });
-      let data;
-      try { data = await response.json(); } catch (e) { data = null; }
+      const data = await response.json();
+      
       if (!response.ok) {
-        throw new Error((data && data.error) || 'Failed to send message');
+        throw new Error(data.error || 'Failed to send message');
       }
 
       setSubmitted(true);
