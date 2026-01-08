@@ -14,16 +14,15 @@ const Navbar = () => {
             </Link>
           </div>
           
-          {/* Desktop Menu */}
           <div className="hidden md:flex space-x-8">
             <Link to="/" className="hover:text-blue-200 transition">Home</Link>
             <Link to="/about" className="hover:text-blue-200 transition">About</Link>
             <Link to="/services" className="hover:text-blue-200 transition">Services</Link>
             <Link to="/discussions" className="hover:text-blue-200 transition">Discussions</Link>
             <Link to="/contact" className="hover:text-blue-200 transition">Contact</Link>
+            <Link to="/admin/messages" className="hover:text-blue-200 transition">Messages</Link>
           </div>
 
-          {/* Mobile Menu Button */}
           <div className="md:hidden">
             <button
               onClick={() => setIsOpen(!isOpen)}
@@ -41,7 +40,6 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* Mobile Menu */}
       {isOpen && (
         <div className="md:hidden bg-blue-700">
           <div className="px-2 pt-2 pb-3 space-y-1">
@@ -50,6 +48,7 @@ const Navbar = () => {
             <Link to="/services" className="block px-3 py-2 rounded hover:bg-blue-800">Services</Link>
             <Link to="/discussions" className="block px-3 py-2 rounded hover:bg-blue-800">Discussions</Link>
             <Link to="/contact" className="block px-3 py-2 rounded hover:bg-blue-800">Contact</Link>
+            <Link to="/admin/messages" className="block px-3 py-2 rounded hover:bg-blue-800">Messages</Link>
           </div>
         </div>
       )}

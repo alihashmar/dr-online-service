@@ -7,6 +7,7 @@ import About from './pages/About';
 import Services from './pages/Services';
 import Contact from './pages/Contact';
 import Discussions from './pages/Discussions';
+import AdminMessages from './pages/AdminMessages';
 import './App.css';
 
 function App() {
@@ -21,6 +22,7 @@ function App() {
             <Route path="/services" element={<Services />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/discussions" element={<Discussions />} />
+            <Route path="/admin/messages" element={<AdminMessages />} />
           </Routes>
         </main>
         <Footer />
